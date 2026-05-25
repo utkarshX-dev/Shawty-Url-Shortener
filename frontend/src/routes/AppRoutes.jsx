@@ -10,7 +10,6 @@ import NotFoundPage from '../pages/NotFoundPage'
 import ProfilePage from '../pages/ProfilePage'
 import UpdateProfilePage from '../pages/UpdateProfilePage'
 import PrivacyPolicy from '../pages/Policy'
-import RedirectLoadingPage from '../pages/RedirectLoadingPage'
 import RegisterPage from '../pages/RegisterPage'
 import UrlsPage from '../pages/UrlsPage'
 
@@ -21,7 +20,6 @@ export default function AppRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/redirect/:shortUrl" element={<RedirectLoadingPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
         <Route element={<ProtectedRoute />}>
