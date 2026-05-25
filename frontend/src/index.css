@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@layer utilities {
+	.font-cedar {
+		font-family: 'Cedarville Cursive', cursive;
+	}
+}
