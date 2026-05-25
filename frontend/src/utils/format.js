@@ -1,11 +1,16 @@
-const SHORT_BASE_URL = import.meta.env.VITE_SHORT_BASE_URL ?? 'http://localhost:3000'
+const SHORT_BASE_URL = (import.meta.env.VITE_SHORT_BASE_URL ?? window.location.origin).replace(/\/$/, '')
 
 export function normalizeShortUrl(shortUrl) {
   if (!shortUrl) return ''
-  if (/^https?:\/\//i.test(shortUrl)) return shortUrl
 
-  const code = String(shortUrl).split('/').filter(Boolean).at(-1)
-  return `${SHORT_BASE_URL.replace(/\/$/, '')}/${code}`
+  const value = String(shortUrl)
+  const code = value.includes('://')
+    ? value.split('/').filter(Boolean).at(-1)
+    : value.split('/').filter(Boolean).at(-1)
+
+  if (!code) return value
+
+  return `${SHORT_BASE_URL}/${code}`
 }
 
 export function formatDate(date) {

@@ -8,6 +8,9 @@ import dotenv from "dotenv";
 import uploadOnCloudinary from "../config/cloudinary.js";
 dotenv.config();
 
+const getPublicShortBaseUrl = () =>
+  (process.env.PROD_BASE_URL || process.env.DEV_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+
 const sanitizeUser = (user) => {
   const userObj = user.toObject();
   delete userObj.password;
@@ -245,7 +248,7 @@ export const shortenUrl = async (req, res) => {
 
     res.status(201).json({
       message: "URL shortened successfully",
-      shortUrl: `${process.env.DEV_BASE_URL}/${urlCode}`,
+      shortUrl: `${getPublicShortBaseUrl()}/${urlCode}`,
       url,
     });
   } catch (error) {
@@ -287,7 +290,7 @@ export const createCustomAlias = async (req, res) => {
 
     res.status(201).json({
       message: "Custom alias created successfully",
-      shortUrl: `${process.env.DEV_BASE_URL}/${alias}`,
+      shortUrl: `${getPublicShortBaseUrl()}/${alias}`,
       url,
     });
   } catch (error) {
