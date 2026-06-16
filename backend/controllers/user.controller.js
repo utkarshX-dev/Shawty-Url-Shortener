@@ -9,7 +9,11 @@ import uploadOnCloudinary from "../config/cloudinary.js";
 dotenv.config();
 
 const getPublicShortBaseUrl = () =>
-  (process.env.PROD_BASE_URL || process.env.DEV_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+  (
+    process.env.PROD_BASE_URL ||
+    process.env.DEV_BASE_URL ||
+    "http://localhost:3000"
+  ).replace(/\/$/, "");
 
 const sanitizeUser = (user) => {
   const userObj = user.toObject();
@@ -35,11 +39,11 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
     const token = generateToken(user);
-        res.cookie('token', token, {
-        httpOnly: true,
-        secure: true, // true in production with HTTPS
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // true in production with HTTPS
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json({
       message: "Login successful",
@@ -78,7 +82,7 @@ export const register = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.status(201).json({
@@ -110,120 +114,86 @@ export const getUserUrls = async (req, res) => {
   }
 };
 
-
-
 export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-    try {
+    const { username, email, password } = req.body;
 
-        const userId = req.user.id;
+    const updateData = {};
 
-        const { username, email, password } = req.body;
+    if (username) {
+      const existingUsername = await User.findOne({
+        username,
+        _id: { $ne: userId },
+      });
 
-        const updateData = {};
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
 
-
-
-        if (username) {
-
-            const existingUsername = await User.findOne({ username, _id: { $ne: userId } });
-
-            if (existingUsername) {
-
-                return res.status(400).json({ message: "Username already exists" });
-
-            }
-
-            updateData.username = username;
-
-        }
-
-
-
-        if (email) {
-
-            const existingEmail = await User.findOne({ email, _id: { $ne: userId } });
-
-            if (existingEmail) {
-
-                return res.status(400).json({ message: "Email already exists" });
-
-            }
-
-            updateData.email = email;
-
-        }
-
-
-
-        if (password) {
-
-            updateData.password = await bcrypt.hash(password, 12);
-
-        }
-
-
-
-        if (req.file) {
-
-            const cloudinaryUrl = await uploadOnCloudinary(req.file.path);
-
-            if (cloudinaryUrl) {
-
-                updateData.photoUrl = cloudinaryUrl;
-
-            } else {
-
-                return res.status(500).json({ message: "Failed to upload image to cloud storage" });
-
-            }
-
-        }
-
-
-
-        if (Object.keys(updateData).length === 0) {
-
-            return res.status(400).json({
-
-                message: "At least one field (username, email, password, or photo) is required to update",
-
-            });
-
-        }
-
-
-
-        const user = await User.findByIdAndUpdate(userId, updateData, {
-
-            new: true,
-
-            runValidators: true,
-
-        });
-
-
-
-        if (!user) {
-
-            return res.status(404).json({ message: "User not found" });
-
-        }
-
-        res.status(200).json({
-
-            message: "Profile updated successfully",
-
-            user: sanitizeUser(user),
-
-        });
-
-    } catch (error) {
-
-        res.status(500).json({ message: "Internal server error", error: error.message });
-
+      updateData.username = username;
     }
 
+    if (email) {
+      const existingEmail = await User.findOne({ email, _id: { $ne: userId } });
+
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      updateData.email = email;
+    }
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 12);
+    }
+
+    if (req.file) {
+      if (req.file) {
+        console.log("Uploaded file:", req.file);
+        console.log("File path:", req.file.path);
+        console.log("File exists:", fs.existsSync(req.file.path));
+
+        const cloudinaryUrl = await uploadOnCloudinary(req.file.path);
+
+        if (cloudinaryUrl) {
+          updateData.photoUrl = cloudinaryUrl;
+        }
+      } else {
+        return res
+          .status(500)
+          .json({ message: "Failed to upload image to cloud storage" });
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        message:
+          "At least one field (username, email, password, or photo) is required to update",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+
+      runValidators: true,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
 };
 
 export const shortenUrl = async (req, res) => {
@@ -239,7 +209,7 @@ export const shortenUrl = async (req, res) => {
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
       6,
     )();
-    
+
     const url = await Url.create({
       originalUrl,
       shortUrl: urlCode,
@@ -301,98 +271,93 @@ export const createCustomAlias = async (req, res) => {
 };
 
 export const getUrl = async (req, res) => {
+  try {
+    const { shortUrl } = req.params;
+    const cachedUrl = await redisClient.get(shortUrl);
 
-    try {
+    if (cachedUrl) {
+      console.log("Redis cache hit");
 
-        const { shortUrl } = req.params;
-        const cachedUrl = await redisClient.get(shortUrl);
+      await Url.findOneAndUpdate(
+        { shortUrl },
+        {
+          $inc: { clicks: 1 },
+          lastVisited: new Date(),
 
-        if (cachedUrl) {
-
-            console.log("Redis cache hit");
-
-            await Url.findOneAndUpdate(
-                { shortUrl },
-                {
-                    $inc: { clicks: 1 },
-                    lastVisited: new Date(),
-
-                    $push: {
-                        visitHistory: {
-                            ip: req.ip,
-                            userAgent: req.headers["user-agent"],
-                            referrer: req.headers.referer || "direct"
-                        }
-                    }
-                }
-            );
-
-            return res.render("redirect", {
-                originalUrl: cachedUrl
-            });
-        }
-
-        const url = await Url.findOneAndUpdate(
-            { shortUrl },
-            {
-                $inc: { clicks: 1 },
-                lastVisited: new Date(),
-
-                $push: {
-                    visitHistory: {
-                        ip: req.ip,
-                        userAgent: req.headers["user-agent"],
-                        referrer: req.headers.referer || "direct"
-                    }
-                }
+          $push: {
+            visitHistory: {
+              ip: req.ip,
+              userAgent: req.headers["user-agent"],
+              referrer: req.headers.referer || "direct",
             },
-            { new: true }
-        );
+          },
+        },
+      );
 
-        if (!url) {
-            return res.status(404).json({
-                message: "URL not found"
-            });
-        }
-
-        await redisClient.set(
-            shortUrl,
-            url.originalUrl,
-            {
-                EX: 60 * 60 * 24
-            }
-        );
-
-        console.log("MongoDB hit");
-
-        res.render("redirect", {
-            originalUrl: url.originalUrl
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            message: error.message
-        });
+      return res.render("redirect", {
+        originalUrl: cachedUrl,
+      });
     }
+
+    const url = await Url.findOneAndUpdate(
+      { shortUrl },
+      {
+        $inc: { clicks: 1 },
+        lastVisited: new Date(),
+
+        $push: {
+          visitHistory: {
+            ip: req.ip,
+            userAgent: req.headers["user-agent"],
+            referrer: req.headers.referer || "direct",
+          },
+        },
+      },
+      { new: true },
+    );
+
+    if (!url) {
+      return res.status(404).json({
+        message: "URL not found",
+      });
+    }
+
+    await redisClient.set(shortUrl, url.originalUrl, {
+      EX: 60 * 60 * 24,
+    });
+
+    console.log("MongoDB hit");
+
+    res.render("redirect", {
+      originalUrl: url.originalUrl,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 
 export const deleteUrl = async (req, res) => {
-    try {
-        const urlId = req.params.urlId;
-        const userId = req.user.id;
+  try {
+    const urlId = req.params.urlId;
+    const userId = req.user.id;
 
-        const url = await Url.findOne({ _id: urlId, userId });
+    const url = await Url.findOne({ _id: urlId, userId });
 
-        if (!url) {
-            return res.status(404).json({ message: "URL not found or unauthorized to delete" });
-        }
-
-        await Url.findByIdAndDelete(urlId);
-        res.status(200).json({ message: "URL deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    if (!url) {
+      return res
+        .status(404)
+        .json({ message: "URL not found or unauthorized to delete" });
     }
+
+    await Url.findByIdAndDelete(urlId);
+    res.status(200).json({ message: "URL deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
 };
 
 export const deleteAccount = async (req, res) => {
@@ -415,49 +380,42 @@ export const deleteAccount = async (req, res) => {
 };
 
 export const getDashboardMetrics = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-    try {
+    const totalUrls = await Url.countDocuments({ userId });
 
-        const userId = req.user.id;
+    const totalClicksResult = await Url.aggregate([
+      {
+        $match: {
+          userId,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalClicks: {
+            $sum: "$clicks",
+          },
+        },
+      },
+    ]);
 
-        const totalUrls = await Url.countDocuments({ userId });
+    const topUrls = await Url.find({ userId }).sort({ clicks: -1 }).limit(5);
 
-        const totalClicksResult = await Url.aggregate([
-            {
-                $match: {
-                    userId
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalClicks: {
-                        $sum: "$clicks"
-                    }
-                }
-            }
-        ]);
+    const recentUrls = await Url.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(5);
 
-        const topUrls = await Url.find({ userId })
-            .sort({ clicks: -1 })
-            .limit(5);
-
-        const recentUrls = await Url.find({ userId })
-            .sort({ createdAt: -1 })
-            .limit(5);
-
-        res.status(200).json({
-            totalUrls,
-            totalClicks:
-            totalClicksResult[0]?.totalClicks || 0,
-            topUrls,
-            recentUrls
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            message: error.message
-        });
-    }
+    res.status(200).json({
+      totalUrls,
+      totalClicks: totalClicksResult[0]?.totalClicks || 0,
+      topUrls,
+      recentUrls,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
