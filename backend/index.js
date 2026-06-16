@@ -11,6 +11,8 @@ import { getUrl } from './controllers/user.controller.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+//dekho kitna code hai
+
 app.use(cookieParser());
 
 app.use(cors({

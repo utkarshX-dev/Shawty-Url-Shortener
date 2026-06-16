@@ -1,16 +1,2 @@
-# React + Vite
+Shawty is a full-stack URL shortener application designed for users to convert long URLs into short, shareable links. The frontend, built with React, offers an intuitive dashboard where users can manage their URLs, track analytics, and view performance metrics. On the backend, I've implemented a secure Node.js and Express server with JWT-based authentication and bcryptjs for password encryption. The application uses MongoDB as the primary database for storing user and URL data, with Redis caching to optimize performance and reduce database load. Users can upload profile images through Cloudinary integration, and the system generates unique short URLs using the nanoid library. I've implemented comprehensive user management features including registration, login, and profile updates. The application also provides detailed metrics and analytics for each shortened URL, including click counts and source tracking. The entire stack is containerized with proper error handling, validation middleware, and secure cookie-based session management."
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
