@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { customAlphabet } from "nanoid";
 import { generateToken } from "../config/token.js";
 import redisClient from "../config/redis.js";
+import fs from "fs";
 import dotenv from "dotenv";
 import uploadOnCloudinary from "../config/cloudinary.js";
 dotenv.config();
@@ -12,7 +13,7 @@ const getPublicShortBaseUrl = () =>
   (
     process.env.PROD_BASE_URL ||
     process.env.DEV_BASE_URL ||
-    "http://localhost:3000"
+    "http://localhost:5173"
   ).replace(/\/$/, "");
 
 const sanitizeUser = (user) => {
